@@ -1,0 +1,111 @@
+Perameters:
+  AMIIdentifier:
+    Type: String 
+    Default: ami-013f17f36f8b1fefb
+  RequiredEC2InstanceType:
+    Type: String 
+    Default: t2.xlarge
+
+Resources:
+  SECGroupPUBServers:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: PublicServersSecGroup
+      GroupName: PublicServersSecGroup
+      SecurityGroupEgress: 
+        - IpProtocol: tcp 
+          FromPort: 0
+          ToPort: 65536
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp 
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-',[!Ref EnvironmentName, 'SECGRP', 'PUB', 'SVRs']]
+      VpcId: 
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPCID"  
+  
+
+  SECGroupPRTServers:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: PrivateServersSecGroup
+      GroupName: PrivateServersSecGroup
+      SecurityGroupEgress: 
+        - IpProtocol: tcp 
+          FromPort: 0
+          ToPort: 65536
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp 
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'SECGRP', 'PRT', 'SVRs']]
+      VpcId: 
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPCID"
+
+
+  IAMROLEForS3Service:
+    #Session Root Role to access S3 from EC2 (Servers) instances
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'ec2.amazon.com'
+            Action:
+            -   "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      
+      RoleName: ServerIAMRoleForS3
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'EC2-TO-S3', 'ROLE']]
+
+  RootInstanceProfile:
+    Type: AWS::IAM::InstanceProfile 
+    Properties:
+      Path: /
+      Roles:
+      -  !Ref: IAMROLEForS3Service
+
+  ServersLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties: 
+      AssociatePublicIpAddress: true
+      ImageId: !Ref AMIIdentifier
+      InstanceType: !Ref RequiredEC2InstanceType
+      KeyName: SecureServerKEY.pem
+      LaunchConfigurationName: WebServerLaunchCong
+      SecurityGroups: 
+        - !Ref: SECGroupPUBServers
+      BlockDeviceMappings: 
+      -   DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: 30
+            VolumeType: gp2
+      IamInstanceProfile: 
+        !Ref RootInstanceProfile
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash
+            sudo apt-get update -y
+            sudo apt-get install unzip awscli -y
+            sudo apt-get install apache2 -y
+            sudo systemctl start apache2.service
+            cd /var/www/html
+            sudo aws s3 cp s3://udacity-demo-1/udacity.zip .
+            sudo unzip -o udacity.zip
+      

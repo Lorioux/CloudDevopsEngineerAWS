@@ -1,0 +1,96 @@
+Description: 
+  Magido Mascate / Udacity Cloud DevOps Engineer Project - MileStone 2
+
+
+Parameters:
+  EnvironmentName:
+    Description: Stack deployment Identifier
+    Type: String 
+
+  VPCCidrBlock:
+    Description: The Classless Inter-Domain Routing for Stack VPC
+    Type: String 
+    Default: "10.0.0.0/16"
+
+  SUBNTCIDR01:
+    Description: The Classless Inter-Domain Routing for Stack Subnets 
+    Type: String
+  
+  SUBNTCIDR02:
+    Description: The Classless Inter-Domain Routing for Stack Subnets
+    Type: String
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: false
+      EnableDnsSupport: false
+      InstanceTenancy: false
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref EnvironmentName
+              - VPC
+  
+  PUBSNET01: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AssignIpv6AddressOnCreation: true
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref SUBNTCIDR01
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PUBSNET01']]
+      VpcId: !Ref VPC
+
+
+  PRTSNET01: 
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref SUBNTCIDR02
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PRTSNET02']]
+      VpcId: !Ref VPC
+
+
+  MainINTERNETGWay:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-',[!Ref EnvironmentName, 'TEST', 'IGW']]
+  
+
+  IGWayAssiationTOVPC:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref MainINTERNETGWay
+      VpcId: !Ref VPC
+
+
+Outputs:
+
+  VPC:
+    Description: VPC ID 
+    Value: !Ref VPC 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'VPCID']]
+
+  PUBLICSNET:
+    Description: PUBLIC SUBNET ID 
+    Value: !Ref PUBSNET01 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'PUB', 'SNETID']]
+
+  PRIVATESNET:
+    Description: PRIVATE SUBNET ID 
+    Value: !Ref PRTSNET01 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'PRT', 'SNETID']]
