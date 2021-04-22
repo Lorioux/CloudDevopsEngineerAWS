@@ -22,14 +22,12 @@ def read_template_and_parameters(template_file, param_file):
         for line in file.readlines():
             parameters += line
     return (template, parameters)
-
-def handle_servers(request, operation, capabilities):
-    name = "servers-stack"
-    template, parameters = read_template_and_parameters("servers.yml", "serversparams.json")
+    
+def execute(request, operation, name, template, parameters, capabilities):
     response = None
     if operation == "create" :
         try:
-            response = create_stack(request, name, template,parameters, capabilities)
+            response = create_stack(request, name, template, parameters, capabilities)
             print (response)
         except:
             print (response)
@@ -44,17 +42,15 @@ def handle_servers(request, operation, capabilities):
     else:
         raise IOError ("Give the intended operation to continue")
 
+def handle_servers(request, operation, capabilities):
+    name = "servers-stack"
+    template, parameters = read_template_and_parameters("servers.yml", "serversparams.json")
+    execute(request, operation, name, template, parameters, capabilities)
+
 def handle_network(request, operation, capabilities):
     template, parameters = read_template_and_parameters("network.yml", "networkparams.json")
     name = "network-stack"
-    if operation == "create":
-        response = create_stack(request, name, template,parameters, capabilities)
-        print (response)
-    elif operation == 'update':
-        response = update_stack(request, name, template,parameters, capabilities)
-        print (response)
-    else:
-        raise IOError ("Give the intended operation to continue")
+    execute(request, operation, name, template, parameters, capabilities)
 
 def update_stack(request, name, template, parameters, capabilities):
     try:
@@ -79,26 +75,9 @@ def create_stack(request, name, template, parameters, capabilities):
         raise
 
 def handle_elbs(request, operation, capabilities):
-
     template, parameters = read_template_and_parameters("loadbalancers.yml", "elbsparams.json")
-
     name = "loadbalancers-stack"
-
-    if operation == "create":
-
-        response = create_stack(request, name, template,parameters, capabilities)
-
-        print (response)
-
-    elif operation == 'update':
-
-        response = update_stack(request, name, template,parameters, capabilities)
-
-        print (response)
-
-    else:
-
-        raise IOError ("Give the intended operation to continue")
+    execute(request, operation, name, template, parameters, capabilities)
 
 def main(args):
     BASE_DIR = pathlib2.Path(os.path.dirname(__file__))
