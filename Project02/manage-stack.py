@@ -1,4 +1,3 @@
-from re import template
 import boto3
 import os, pathlib2, json, sys, getopt
 
