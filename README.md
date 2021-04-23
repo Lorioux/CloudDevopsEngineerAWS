@@ -1,5 +1,5 @@
 # CloudDevopsEngineerAWS
-Cloud Devops Engineer with AWS - NanoDegree Course
+Cloud DevOps Engineer with AWS - NanoDegree Course By Udacity
 
 Four months Learning path to design and deploy infrastructure as code, build and monitor CI/CD pipelines for different deployment strategies, and deploy scalable microservices using Kubernetes. At the end of the program, we combine the new skills by completing a capstone project.
 
