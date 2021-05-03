@@ -1,0 +1,141 @@
+Description:
+  Magido Mascate / Udacity Cloud DevOps Engineer Project 2
+
+
+Parameters:
+  EnvironmentName:
+    Type: String 
+    Default: CourseWork02
+
+Resources:
+  WEBAPPELBSECGRP:
+    # WEB ELB Security Group
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: WEBAPP-ELB-SECGRP
+      GroupName: WEBAPPELBSECGRP
+      SecurityGroupEgress: 
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp 
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-',[!Ref EnvironmentName, 'WEBAPPELB','SGRP']]
+      VpcId: 
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPCID"  
+
+  WEBAPPELB:
+    # WEB APPLICATION LOAD BALANCER
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: [WEBAPPELBSECGRP, PRTWEBTARGETGRP, WEBSRVSAUTOSCALINGGRP]
+    Properties:
+      Type: application
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups: 
+      -   !Ref WEBAPPELBSECGRP
+      Subnets: 
+      -   Fn::ImportValue:
+            !Sub "${EnvironmentName}-PUB-1-SNETID"      
+      -   Fn::ImportValue:
+            !Sub "${EnvironmentName}-PUB-2-SNETID"
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, "WEBAPPELB"]]
+      
+  PRTWEBTARGETGRP:
+    # PRIVATE WEBAPP SERVER Instances Target Group
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 8
+      Name: !Join ['-', [!Ref EnvironmentName, "PRTWEBAPP","TGRP"]]
+      Matcher:
+        HttpCode: 200
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPCID"
+      TargetType: instance
+
+  WEBSRVSAUTOSCALINGGRP:
+    # Auto Scaling Group For Web App ELB
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: [PRTWEBTARGETGRP]
+    Properties: 
+      AutoScalingGroupName: WEBAPPAUTOSCALLINGGRP
+      AvailabilityZones: 
+        - !Select [0, !GetAZs '']
+        - !Select [1, !GetAZs '']
+      DesiredCapacity: 2
+      HealthCheckGracePeriod: 10
+      HealthCheckType: ELB
+      LaunchConfigurationName: 
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-LCFG"
+      MaxSize: 5
+      MinSize: 2
+      Tags:
+      -   Key: Name
+          PropagateAtLaunch: true
+          Value: !Join ['-', [!Ref EnvironmentName,'PRT','SVR']]
+      TargetGroupARNs: 
+      -   !Ref PRTWEBTARGETGRP
+      VPCZoneIdentifier:
+      -   Fn::ImportValue:
+            !Sub "${EnvironmentName}-PRT-1-SNETID"      
+      -   Fn::ImportValue:
+            !Sub "${EnvironmentName}-PRT-2-SNETID"
+
+  WEBAPPELBLISTENER:
+    # Web ELB Listener at port 80
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn: WEBAPPELB
+    Properties: 
+      DefaultActions: 
+      -   Type: forward
+          TargetGroupArn: !Ref PRTWEBTARGETGRP
+      LoadBalancerArn: 
+        !Ref WEBAPPELB
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  WEBAPPELBSECGRPOUT:
+    Description: ELB Security Group 
+    Value: !Ref WEBAPPELBSECGRP
+
+  WEBAPPELBOUT:
+    Description: Web ELBalancer
+    Value: !Ref WEBAPPELB
+
+  WEBAPPELBDNSNAMEOUT:
+    Description: Web ELBalancer Domain NS Name (Publicly Accessible)
+    Value: !Join ['', ['http://', !GetAtt WEBAPPELB.DNSName ]]
+    Export:
+      Name: !Join ['-', [!Ref EnvironmentName, 'ELBDNS', 'NAME']]
+
+  PRTWEBTARGETGRPOUT:
+    Description: WEB ELB Target group 
+    Value: !Ref PRTWEBTARGETGRP
+
+  WEBSRVSAUTOSCALINGGRPOUT:
+    Description: WEB Servers Auto Scaling Group
+    Value: !Ref WEBSRVSAUTOSCALINGGRP
+  
+  WEBAPPELBLISTENEROUT:
+    Description: WEB App ELB Listener 
+    Value: !Ref WEBAPPELBLISTENER
+
+
