@@ -1,0 +1,147 @@
+Description:
+  Magido Mascate / Udacity hands-on exercise on CloudFormation for a Simple Onpremises Network Infrastructure
+
+Parameters:
+
+  EnvironmentName:
+    Description: Project Environment Reference Variable
+    Type: String 
+
+  VpcCIDR: 
+    Description: Main VPC CIDR Block Variable
+    Type: String
+
+  PrivateSubnetCidrBlock:
+    Description: Subnet Cidr Block
+    Type: CommaDelimitedList
+
+  
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} - VPC
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Select [0, !Ref PrivateSubnetCidrBlock]
+      Tags:
+        - Key: Name 
+          Value: !Sub ${EnvironmentName} Private Subnet 1 AZ(a)
+      VpcId: !Ref VPC
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Select [1, !Ref PrivateSubnetCidrBlock]
+      Tags:
+        - Key: Name 
+          Value: !Sub ${EnvironmentName} Private Subnet 2 AZ(b)
+      VpcId: !Ref VPC
+
+  VirtualPrivateGateWay:
+    Type: AWS::EC2::VPNGateway
+    Properties:
+      Type: ipsec.1 # Mandatory IPSec type for the VPN End points
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-VPN-ENDPoint-#1
+
+  CustomerGateWay:
+    Type: AWS::EC2::CustomerGateway
+    Properties:
+      BgpAsn: 65000 #The Border Gateway Protocol (BGP) Autonomous System Number (ASN) of your customer gateway. You can use an existing ASN assigned to your network. If you don't have one, you can use a private ASN in the 64512-65534 range.
+      IpAddress: "85.123.56.34"
+      Type: ipsec.1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-CGW
+  
+  VPGatewayAttatchmentToVPC:
+    Description: Attach our VirtualPrivateGateWays to VPC
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn: [VPC, VirtualPrivateGateWay]
+    Properties:
+      VpcId: !Ref VPC 
+      VpnGatewayId: !Ref VirtualPrivateGateWay
+
+
+  VPNConnection1:
+    Description: This specify a VPN Connection between the VP Gateway and Customer Gateway
+    Type: AWS::EC2::VPNConnection
+    DependsOn: [CustomerGateWay, VirtualPrivateGateWay]
+    Properties:
+      Type: ipsec.1
+      CustomerGatewayId: !Ref CustomerGateWay
+      VpnGatewayId:  !Ref VirtualPrivateGateWay
+      Tags:
+        - Key: Name 
+          Value: !Sub ${EnvironmentName}-VPNConnect#1
+
+  VPNConnection2:
+    Description: This specify a VPN Connection between the VP Gateway and Customer Gateway
+    Type: AWS::EC2::VPNConnection
+    DependsOn: [CustomerGateWay, VirtualPrivateGateWay]
+    Properties:
+      Type: ipsec.1
+      CustomerGatewayId: !Ref CustomerGateWay
+      VpnGatewayId:  !Ref VirtualPrivateGateWay
+      Tags:
+        - Key: Name 
+          Value: !Sub ${EnvironmentName}-VPNConnect#2
+
+
+
+Outputs:
+  
+  VPCDesc:
+    Description: This is the VPC ID 
+    Value: !Ref VPC 
+    Export:
+      Name: !Sub ${EnvironmentName}-VPC
+
+  PrivateSubnet1Desc:
+    Description: This is Private subnet 1 
+    Value: !Ref PrivateSubnet1 
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "Private-Subnet", 1]]
+
+  PrivateSubnet2Desc:
+    Description: This is Private subnet 2 
+    Value: !Ref PrivateSubnet2 
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "Private-Subnet", 2]]
+
+  
+  VirtualPrivateGateWayDesc:
+    Description: This is Virtual Private Gateway#1
+    Value: !Ref VirtualPrivateGateWay 
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "VirtualPrivateGateWay"]]
+
+  CustomerGateWayDesc:
+    Description: This is CustomerGateWay
+    Value: !Ref CustomerGateWay 
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "CustomerGateWay"]]
+
+  VPGatewayAttatchmentToVPC:
+    Description: Vitual Private Gateway Attatchment to VPC
+    Value: !Ref VPGatewayAttatchmentToVPC 
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "VPCGatewayAttachment"]]
+    
+  VPNConnectionDesc:
+    Description: Vitual Private Network Connections
+    Value: !Join ["; ", [ !Ref VPNConnection1, !Ref VPNConnection2]]
+    Export:
+      Name: !Join ["-", [ !Ref EnvironmentName, "VPNConnection-1-2"]]

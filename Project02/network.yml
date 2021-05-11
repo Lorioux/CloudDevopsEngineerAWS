@@ -1,0 +1,239 @@
+Description: 
+  Magido Mascate / Udacity Cloud DevOps Engineer Project 2
+
+
+Parameters:
+  EnvironmentName:
+    Description: Stack deployment Identifier
+    Type: String 
+
+  VPCCidrBlock:
+    Description: The Classless Inter-Domain Routing for Stack VPC
+    Type: String 
+    Default: "10.0.0.0/16"
+
+  PUBSNTCIDRs:
+    Description: The Classless Inter-Domain Routing for Stack Subnets 
+    Type: CommaDelimitedList
+  
+  PRTSNTCIDRs:
+    Description: The Classless Inter-Domain Routing for Stack Subnets
+    Type: CommaDelimitedList
+
+  AZ0:
+    Type: Number
+    Default: 0
+  
+  AZ1:
+    Type: Number
+    Default: 1
+
+Resources:
+
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: Name
+          Value: !Join 
+            - '-'
+            - - !Ref EnvironmentName
+              - VPC
+  
+  PUBSNET01: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 
+          !Select [!Ref AZ0, !GetAZs '']
+      CidrBlock: 
+          !Select [0, !Ref PUBSNTCIDRs ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PUBSNET01']]
+      VpcId: 
+          !Ref VPC
+
+  PUBSNET02: 
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 
+          !Select [!Ref AZ1, !GetAZs '']
+      CidrBlock: 
+          !Select [1, !Ref PUBSNTCIDRs ]
+      MapPublicIpOnLaunch: true
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PUBSNET02']]
+      VpcId: 
+          !Ref VPC
+
+  PRTSNET01: 
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 
+          !Select [!Ref AZ0, !GetAZs '']
+      CidrBlock: 
+          !Select [0, !Ref PRTSNTCIDRs ]
+      MapPublicIpOnLaunch: false
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PRTSNET01']]
+      VpcId: 
+          !Ref VPC
+
+  PRTSNET02: 
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 
+        !Select [!Ref AZ1, !GetAZs '']
+      CidrBlock: 
+        !Select [1, !Ref PRTSNTCIDRs ]
+      MapPublicIpOnLaunch: false
+      Tags: 
+      -   Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'PRTSNET02']]
+      VpcId: 
+        !Ref VPC
+
+  MainINTERNETGWay:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: Name 
+          Value: !Join ['-', [!Ref EnvironmentName, 'IGW']]
+  
+  IGWayAssociationTOVPC:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref MainINTERNETGWay
+      VpcId: 
+        Ref: VPC
+
+  PUBSRVRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: VPC
+      Tags:
+      - Key: Name 
+        Value: !Join ['-',[!Ref EnvironmentName, 'PUBRT']]
+
+  PRTSRVRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: VPC
+      Tags:
+      -   Key: Name 
+          Value: !Join ['-',[!Ref EnvironmentName, 'PRTRT']]
+
+  PUBSRVPRoute:
+    Type: AWS::EC2::Route
+    DependsOn: MainINTERNETGWay
+    Properties:
+      RouteTableId:
+        Ref: PUBSRVRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MainINTERNETGWay
+  
+  PRTSRVPRoute:
+    Type: AWS::EC2::Route
+    DependsOn: MainINTERNETGWay
+    Properties:
+      RouteTableId:
+        Ref: PRTSRVRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NATForPRTSVRS
+
+  NATForPRTSVRS:
+    # NAT Gateway in the public subnet
+    Type: AWS::EC2::NatGateway
+    DependsOn: EIP
+    Properties:
+       AllocationId:
+          Fn::GetAtt: EIP.AllocationId
+       SubnetId:
+          Ref: PUBSNET01
+       Tags:
+       -  Key: Name
+          Value: !Join ['-', [!Ref EnvironmentName, 'NAT']]
+  EIP:
+    # Elastic IP for NAT
+    DependsOn: IGWayAssociationTOVPC
+    Type: AWS::EC2::EIP
+    Properties:
+       Domain: vpc
+
+  PUBSnetASSOCToRTable01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: [PUBSRVRouteTable, PUBSNET01]
+    Properties: 
+      RouteTableId: 
+        !Ref PUBSRVRouteTable
+      SubnetId: 
+        !Ref PUBSNET01
+
+  PUBSnetASSOCToRTable02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: [PUBSRVRouteTable, PUBSNET02]
+    Properties: 
+      RouteTableId: 
+        !Ref PUBSRVRouteTable
+      SubnetId: 
+        !Ref PUBSNET02
+
+  PUBSnetASSOCToRTable03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: [PUBSRVRouteTable, PRTSNET01]
+    Properties: 
+      RouteTableId: 
+        !Ref PRTSRVRouteTable
+      SubnetId: 
+        !Ref PRTSNET01
+
+  PUBSnetASSOCToRTable04:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: [PUBSRVRouteTable, PUBSNET02]
+    Properties: 
+      RouteTableId: 
+        !Ref PRTSRVRouteTable
+      SubnetId: 
+        !Ref PRTSNET02
+
+Outputs:
+  VPCOUT:
+    Description: VPC ID 
+    Value: !Ref VPC 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'VPCID']]
+
+  PUBSNET01OUT:
+    Description: PUBLIC SUBNET ID 
+    Value: !Ref PUBSNET01 
+    Export:
+      Name: !Join ['-', [!Ref EnvironmentName, 'PUB', '1', 'SNETID']]
+
+  PUBSNET02OUT:
+    Description: PUBLIC SUBNET ID 
+    Value: !Ref PUBSNET02 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'PUB', '2', 'SNETID']]
+
+  PRTSNET01OUT:
+    Description: PRIVATE SUBNET ID 
+    Value: !Ref PRTSNET01 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'PRT', '1','SNETID']]
+
+  PRTSNET02OUT:
+    Description: PRIVATE SUBNET ID 
+    Value: !Ref PRTSNET02 
+    Export:
+      Name: !Join ['-',[!Ref EnvironmentName, 'PRT','2','SNETID']]

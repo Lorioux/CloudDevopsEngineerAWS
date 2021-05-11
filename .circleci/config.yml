@@ -1,0 +1,22 @@
+version: 2.1
+
+jobs:
+  create_infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: create ec2 instance stack in cloudformation
+          command: |
+            ls -al Project03 && \
+            aws cloudformation create-stack --stack-name websv01 --region us-east-1 \
+            --template-body file://template.yml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
+
+
+workflows:
+  Infrastructure_Workflow:
+    jobs:
+      - create_infrastructure
+  
