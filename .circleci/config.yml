@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  create_infrastructure:
+  create_infrastructure: # Job for lab01
     docker:
       - image: amazon/aws-cli
 
@@ -10,11 +10,13 @@ jobs:
       - run:
           name: create ec2 instance stack in cloudformation
           command: |
-            aws cloudformation deploy --template-file labs/template.yml --stack-name websv01
+            aws cloudformation deploy --template-file project03/lab01/template.yml --stack-name websv01
+
+  
 
 
-workflows:
-  Infrastructure_Workflow:
-    jobs:
-      - create_infrastructure
+# workflows:
+#   Infrastructure_Workflow:
+#     jobs:
+#       - create_infrastructure
   
