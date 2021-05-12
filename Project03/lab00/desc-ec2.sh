@@ -1,8 +1,14 @@
 #!/bin/sh -
+input=$1
+if ["" == "$input"]
+then
+    read -p "instance name: " instancename
+else
+    instancename="$1"
+    echo $1
+fi
 
 rm -f ./inventory
-read instancename
-
 echo "[all]" > ./inventory
 
 command="$(aws ec2 describe-instances --region us-east-1 \
