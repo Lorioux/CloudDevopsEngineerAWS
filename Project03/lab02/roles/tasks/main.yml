@@ -8,5 +8,5 @@
 - name: Copy files 
   become: yes 
   copy:
-    src: ../
-    dest: 
+    src: ./cicid-wfw.png
+    dest: ~/var/www/html/

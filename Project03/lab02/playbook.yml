@@ -5,4 +5,4 @@
 
   tasks:
     - configure_instance
-    - copy_files 
+    - copy_files

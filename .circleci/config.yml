@@ -20,7 +20,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["5b:39:8b:9c:3b:d2:0b:fd:61:3b:4c:87:9b:e6:85:0e"]
+          fingerprints: ["4d:0b:29:64:e7:f8:19:f7:0a:76:80:38:8a:fe:be:b6"]
       
       - run:
           name: Install dependencies
@@ -29,7 +29,8 @@ jobs:
 
       - run:
           name: Congure Server
-          command: 
+          command: |
+            cd project03/lab03
             ansible-playbook inventory.txt playbook.yml
 
 
@@ -39,5 +40,6 @@ jobs:
 workflows:
   Infrastructure_Workflow:
     jobs:
-      - create_infrastructure
+      #- create_infrastructure # lab01
+      - configure_infrastructure #lab02
   
