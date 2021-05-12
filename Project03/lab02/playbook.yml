@@ -1,0 +1,8 @@
+---
+- name: Server configuration
+  hosts: all 
+  user: ubuntu
+
+  tasks:
+    - configure_instance
+    - copy_files 

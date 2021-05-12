@@ -1,0 +1,12 @@
+---
+- name: Install node
+  become: yes
+  apt: 
+    name: ["apache2"]
+    update_cache: yes
+
+- name: Copy files 
+  become: yes 
+  copy:
+    src: ../
+    dest: 
