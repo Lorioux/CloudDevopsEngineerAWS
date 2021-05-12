@@ -13,5 +13,5 @@
 
 - name: Enable apache2
   become: yes
-  run:
+  shell:
     systemctl enable apache2
