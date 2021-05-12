@@ -10,3 +10,8 @@
   copy:
     src: cicid-wfw.png
     dest: /var/www/html/
+
+- name: Enable apache2
+  become: yes
+  run:
+    systemctl enable apache2
