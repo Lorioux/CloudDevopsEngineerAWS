@@ -28,9 +28,9 @@ jobs:
             apk add --update ansible
 
       - run:
-          name: Congure Server
+          name: Configure Server
           command: |
-            cd project03/lab03
+            cd Project03/lab03
             ansible-playbook inventory.txt playbook.yml
 
 workflows:
