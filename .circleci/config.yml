@@ -30,8 +30,8 @@ jobs:
       - run:
           name: Configure Server
           command: |
-            cd ./Project03/lab03
-            ansible-playbook inventory.txt playbook.yml
+            cd ./Project03/lab03/
+            ansible-playbook -i inventory.txt playbook.yml 
 
 workflows:
   Infrastructure_Workflow:
