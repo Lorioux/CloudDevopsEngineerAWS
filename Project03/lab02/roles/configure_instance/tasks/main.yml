@@ -15,7 +15,7 @@
   become: yes
   shell: |
     systemctl enable apache2
-    service apache restart
+    service apache2 restart
   register: conf_results
 
 - name: Print results
