@@ -1,0 +1,50 @@
+---
+- name: "update apt packages"
+  become: yes
+  become_method: sudo
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  become: yes
+  apt: 
+    upgrade: yes 
+
+- name: install node js in the EC2
+  become: yes
+  apt:
+    name: ['nodejs', 'npm' ]
+    state: latest
+    update_cache: yes 
+
+# revisition added
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: Creates directory
+  file:
+    path: ~/web
+    state: directory
+
+
+- name: copy the index.js
+  become: yes
+  template: # added after revision
+  #copy: removed after revision
+    src: "files/index.js"
+    dest: ~/web/index.js
+
+- name: running node server
+  become_method: sudo
+  shell: |
+    pm2 start ~/web/index.js -y
+  register: server_result
+
+- name: print result
+  debug:
+    msg: "{{ server_result.stdout_lines }}"
