@@ -2,6 +2,8 @@
 - name: Server configuration
   hosts: all 
   user: ubuntu
+  vars: 
+    ansible_host_key_checking: false
 
   roles:
     - configure_instance
