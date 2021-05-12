@@ -3,6 +3,8 @@ version: 2.1
 
 jobs:
   create_infrastructure: # Job for lab01
+    environment:
+      INSTANCE_NAME: "WEBSVR"
     docker:
       - image: amazon/aws-cli
 
@@ -12,6 +14,24 @@ jobs:
           name: create ec2 instance stack in cloudformation
           command: |
             aws cloudformation deploy --template-file project03/lab01/template.yml --stack-name websv01
+
+      - run:
+          name: retrive ec2 server ip and append into inventory.txt
+          command: |
+            cmd="$(aws ec2 describe-instances \ 
+              --fielters "Name=tags:Name,Values=${INSTANCE_NAME}" \ 
+              --query "Resources[*].Instances[*].PublicIpAddress" \
+              --output text)"
+            if [ "$cmd" != "None" || "$cmd" != " " ]
+            then
+              inventory="./Project03/lab00/inventory"
+              echo "[webserver]" > $inventory
+              echo "$cmd" >> $inventory
+              exit 0
+            else
+              exit 1
+            fi
+          when: on_success
 
   configure_infrastructure: # Job for lab02
     docker:
@@ -30,12 +50,15 @@ jobs:
       - run:
           name: Configure Server
           command: |
-            cd ./Project03/lab02/
-            ansible-playbook -i inventory.txt playbook.yml 
+            cd ./Project03/lab00/
+            ansible-playbook -i inventory playbook.yml
 
 workflows:
   Infrastructure_Workflow:
     jobs:
-      #- create_infrastructure # lab01
-      - configure_infrastructure #lab02
+      - create_infrastructure # lab01
+      - configure_infrastructure: #lab02
+          requires:
+          - create_infrastructure
+
   
