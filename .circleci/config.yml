@@ -33,10 +33,6 @@ jobs:
             cd project03/lab03
             ansible-playbook inventory.txt playbook.yml
 
-
-          
-
-
 workflows:
   Infrastructure_Workflow:
     jobs:
