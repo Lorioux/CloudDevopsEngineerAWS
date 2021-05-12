@@ -11,7 +11,7 @@ jobs:
           name: create ec2 instance stack in cloudformation
           command: |
             aws cloudformation create-stack websv01 --region us-east-1 \
-            --template-body file://./labs/template.yml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
+            --template-body file://labs/template.yml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
 
 
 workflows:
