@@ -15,3 +15,8 @@
   become: yes
   shell:
     systemctl enable apache2
+  register: conf_results
+
+- name: Print results
+  debug:
+    msg: "{{ conf_results }}"
