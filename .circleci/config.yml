@@ -11,7 +11,7 @@ jobs:
           name: create ec2 instance stack in cloudformation
           command: |
             aws cloudformation deploy \ 
-            --template-file file://labs/template.yml \
+            --template-file ./labs/template.yml \
             --stack-name websv01
 
 
