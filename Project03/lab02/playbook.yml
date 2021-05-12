@@ -3,6 +3,5 @@
   hosts: all 
   user: ubuntu
 
-  tasks:
+  roles:
     - configure_instance
-    - copy_files

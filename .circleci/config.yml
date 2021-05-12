@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Configure Server
           command: |
-            cd Project03/lab03
+            cd ./Project03/lab03
             ansible-playbook inventory.txt playbook.yml
 
 workflows:

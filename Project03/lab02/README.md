@@ -10,7 +10,7 @@
     8. A dependency in our workflow to make sure the infrastructure creation job finishes before this job runs.
 
 <div style="padding: 16px; margin: 24px;background-color: white;">
-    <img src="./roles/files/cicid-wfw.png" />
+    <img src="./roles/configure_instance/files/cicid-wfw.png" />
     <br><br>
     <h2>Deployment Going Smoothly!</h2>
 </div>
