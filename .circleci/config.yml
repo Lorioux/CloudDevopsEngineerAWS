@@ -15,7 +15,7 @@ jobs:
           command: |
             ls -a Project03
             aws cloudformation deploy \
-              --template-file /Project03/lab01/template.yml \
+              --template-file ./lab01/template.yml \
               --stack-name ${INSTANCE_NAME}
 
       - run:
@@ -27,7 +27,7 @@ jobs:
               --output text)"
             if [ "$cmd" != "None" || "$cmd" != " " ]
             then
-              inventory="./Project03/lab00/inventory"
+              inventory="./lab00/inventory"
               echo "[webserver]" > $inventory
               echo "$cmd" >> $inventory
               exit 0
