@@ -24,11 +24,14 @@ jobs:
             cmd="$(aws ec2 describe-instances --filters "Name=tag:Name,Values=${INSTANCE_NAME}" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)"
             if [[ "$cmd" != "None" || "" != "$cmd" ]]
             then
+              echo "Writing inventory"
               inventory="./Project03/lab00/inventory"
+              rm -f inventory
               echo "[webserver]" > $inventory
               echo "$cmd" >> $inventory
               exit 0
             else
+              echo "Coulding fetch Ip> $cmd"
               exit 1
             fi
           when: on_success
