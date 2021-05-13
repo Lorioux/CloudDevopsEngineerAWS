@@ -13,8 +13,10 @@ jobs:
       - run:
           name: create ec2 instance stack in cloudformation
           command: |
+            ls -a Project03
             aws cloudformation deploy \
-             --template-file /Project03/lab01/template.yml --stack-name ${INSTANCE_NAME}
+              --template-file /Project03/lab01/template.yml \
+              --stack-name ${INSTANCE_NAME}
 
       - run:
           name: retrive ec2 server ip and append into inventory.txt
