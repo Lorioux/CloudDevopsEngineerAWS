@@ -22,9 +22,9 @@ jobs:
           name: retrive ec2 server ip and append into inventory.txt
           command: |
             cmd="$(aws ec2 describe-instances \ 
-              --fielters "Name=tags:Name,Values=${INSTANCE_NAME}" \ 
-              --query "Resources[*].Instances[*].PublicIpAddress" \
-              --output text)"
+                    --filters "Name=tags:Name,Values=${INSTANCE_NAME}" \ 
+                    --query "Resources[*].Instances[*].PublicIpAddress" \
+                    --output text)"
             if [ "$cmd" != "None" || "$cmd" != " " ]
             then
               inventory="./Project03/lab00/inventory"
