@@ -138,8 +138,12 @@ jobs:
             cat .env
             npm run build
       - save_cache:
-          paths: ["backend/node_modules", "backend/.env", "backend/dist" ]
+          paths: ["backend/node_modules" ]
           key: backend-build
+      - persist_to_workspace:
+          root: ~/
+          paths: ["backend/.env", "backend/dist"]
+  
   test-frontend:
     docker:
       # Docker image here
@@ -211,16 +215,11 @@ jobs:
           command: |
             cd ./backend
             npm audit fix --audit-level=critical --force
-      - run:
-          name: bundle
-          command: |
-            cd backend
-            # bundle build artifacts
-            tar -c -f artifats.tar.gzip -z dist node_modules src .env
-      - store_artifacts:
-          path: ~/artifacts.tar.gzip
-          destination: backend
-      
+            ls -a
+      - persist_to_workspace:
+          root: ~/
+          paths: ["backend/node_modules"]
+  
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI

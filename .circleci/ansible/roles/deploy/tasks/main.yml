@@ -6,20 +6,18 @@
     mkdir /var/www/
 
 - name: Copy build artifacts
-  become: yes
-  become_method: sudo
   copy:
-    src: "~/backend/"
-    dest: /var/www/
+    src: /root/backend"
+    dest: /root/home/
   
-- name: "Extract build artifacts"
-  become: yes
-  become_method: sudo 
-  shell: |
-    cd /var/www/
-    # extract 
-    tar -xf artifacts.tar.gzip
-  register: extration
+# - name: "Extract build artifacts"
+#   become: yes
+#   become_method: sudo 
+#   shell: |
+#     cd /var/www/
+#     # extract 
+#     tar -xf artifacts.tar.gzip
+#   register: extration
 
 - name: "Run backend server"
   become: yes 
