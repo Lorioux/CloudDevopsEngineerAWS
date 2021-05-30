@@ -11,7 +11,7 @@
     cd /home/ubuntu/
     # extract 
     tar -xf artifacts.tar.gzip
-  register: extration
+  register: extraction
 
 - name: "Run backend server"
   become: yes
