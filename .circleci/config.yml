@@ -401,21 +401,24 @@ jobs:
           name: Install dependencies
           command: |
             # your code here
-            # curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
+            
             sudo pip install ansible
-      - prepare-aws-cli-profile: # will be required to destroy-environment, ON_FAIL
+
+      - prepare-aws-cli-profile: # will be required to destroy-environment ON_FAIL
           installaws: "yes" 
       - run:
           name: Deploy backend
           command: |
             # your code here
+            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy/files"
+            
             cd backend
             ls -a
 
-            tar -c -f artifacts.tar.gzip -z ~/project/backend/dist
-            mkdir ".circleci/ansible/roles/deploy-backend/files"
-            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy-backend/files"
+            tar -c -zf artifacts.tar.gzip ./dist
+            mkdir ".circleci/ansible/roles/deploy/files"
             
+
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
           
