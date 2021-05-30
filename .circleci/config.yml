@@ -282,7 +282,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - prepare-aws-cli-profile:
-          isEmpty: "yes"
+          installaws: "yes"
       - run:
           name: Install dependencies
           command: |
