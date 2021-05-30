@@ -1,13 +1,9 @@
 ---
 - name: Check environment
   become_method: sudo
-  shell: 
+  shell: |
     env
   register: check_envars
-
-- name: Print env check 
-  debug: 
-    msg: "{{ check_results.stdout_lines }}"
 
 - name: Install Node and pm2
   become: yes
