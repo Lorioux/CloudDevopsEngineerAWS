@@ -1,20 +1,14 @@
 ---
-- name: "Make web home dir"
-  become: yes
-  become_method: sudo 
-  shell:
-    mkdir /var/www/
-
 - name: Copy build artifacts
   copy:
     src:  artifacts.tar.gzip
-    dest: /var/www/
+    dest: /home/ubuntu
   
 - name: "Extract build artifacts"
   become: yes
   become_method: sudo 
   shell: |
-    cd /var/www/
+    cd /home/ubuntu/
     # extract 
     tar -xf artifacts.tar.gzip
   register: extration
@@ -22,7 +16,7 @@
 - name: "Run backend server"
   become: yes
   shell: |
-    cd /var/www/
+    cd /home/ubuntu
     pm2 start dist/main.js
     pm2 log 0 --nostream
   register: launch
