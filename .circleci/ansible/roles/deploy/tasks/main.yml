@@ -6,7 +6,6 @@
   
 - name: "Extract build artifacts"
   become: yes
-  become_method: sudo 
   shell: |
     # extract 
     tar -xf artifacts.tar.gzip
@@ -18,14 +17,14 @@
 - name: "Run backend server"
   become: yes
   shell: |
-    cd /home/ubuntu/backend
+    cd backend
     pm2 start dist/main.js
-    pm2 log 0 -lines 50 --json --nostream
+    pm2 log 0 --lines 50 --json --nostream
   register: launch
 
 - name: Print extraction results
   debug:
-    msg: "{{ extraction.stdout_lines }}"
+    msg: "{{ extraction.stderr_lines }}"
 
 - name: Print launch results
   debug:
