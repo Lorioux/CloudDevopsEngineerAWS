@@ -8,13 +8,11 @@
   become: yes
   become_method: sudo 
   shell: |
-    cd /home/ubuntu/
     # extract 
     tar -xf artifacts.tar.gzip
     
-    # Install required modules
-    cd backend
-    npm install
+    # remove required *.gzip file
+    rm -f artifacts.tar.gzip
   register: extraction
 
 - name: "Run backend server"
@@ -22,7 +20,7 @@
   shell: |
     cd /home/ubuntu/backend
     pm2 start dist/main.js
-    pm2 log 0 --nostream
+    pm2 log 0 -lines 50 --json --nostream
   register: launch
 
 - name: Print extraction results
