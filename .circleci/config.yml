@@ -336,7 +336,7 @@ jobs:
             rm -f .tmp
       - persist_to_workspace:
           root: ~/
-          paths: ["project/backend/dist", "project/backend/.env", "project/backend/node_modules", "project/backend/src"]
+          paths: ["project/backend/dist"]
       
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
@@ -409,7 +409,7 @@ jobs:
           command: |
             # your code here
             cd backend
-            tar -c -f artifacts.tar.gzip -z "project/backend/dist" "project/backend/.env" "project/backend/node_modules" "project/backend/src"
+            tar -c -f artifacts.tar.gzip -z "project/backend/dist"
             mkdir ".circleci/ansible/roles/deploy-backend/files"
             mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy-backend/files"
             inventory=".circleci/ansible/inventory.txt"
