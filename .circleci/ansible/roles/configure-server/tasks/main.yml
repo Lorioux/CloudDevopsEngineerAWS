@@ -1,0 +1,39 @@
+---
+- name: Check environment
+  become_method: sudo
+  shell: 
+    env
+  register: check_results
+
+- name: Print env check 
+  debug: 
+    msg: "{{check_results.stdout_lines}}"
+
+- name: Install Node and pm2
+  become: yes
+  become_method: sudo
+  shell: |
+    apt install -y nodejs npm
+    npm install -g pm2@latest
+
+- name: Copy environment variables for db
+  become_method: sudo
+  copy:
+    src: .dbserver.cfg
+    dest: ~/
+
+- name: Set environment variable in the back-end server
+  become_method: sudo
+  shell: |
+    while read line; do 
+      export $line
+      echo "export $line" >> ~/.profile
+    done < ~/.dbserver.cfg
+    
+    # check environment variable
+    env
+  register: server_env_check
+
+- name: Print server env check
+  debug:
+    msg: "{{ server_env_check.stdout_lines }}"

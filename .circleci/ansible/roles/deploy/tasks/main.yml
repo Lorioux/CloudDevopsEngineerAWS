@@ -1,0 +1,28 @@
+---
+- name: "Make web home dir"
+  become: yes
+  become_method: sudo 
+  shell:
+    mkdir /var/www/
+    mkdir /var/www/src/
+
+- name: Copy files
+  become: yes
+  become_method: sudo
+  copy:
+    src: "/home/circleci/project/backend/dist/"
+    dest: /var/www/src/
+  
+- name: "Start backend server"
+  become: yes
+  become_method: sudo 
+  shell: |
+    cd /var/www/src/
+    pm2 start main.js
+  register: launch
+
+
+
+- name: Print launch results
+  debug:
+    msg: "{{ launch.stdout_lines }}"
