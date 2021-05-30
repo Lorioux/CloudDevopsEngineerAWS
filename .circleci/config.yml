@@ -142,7 +142,7 @@ jobs:
           key: backend-build
       - persist_to_workspace:
           root: ~/
-          paths: ["project/backend/.env"]
+          paths: ["project/backend/.env", "project/backend/dist" ]
 
   test-frontend:
     docker:
@@ -209,6 +209,8 @@ jobs:
       # Restore from cache
       - restore_cache:
           keys: [backend-build]
+      - attach_workspace:
+          at: ~/project/backend/
       # Your job code here
       - run:
           name: Auditing backend depenndencies
