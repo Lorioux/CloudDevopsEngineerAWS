@@ -281,6 +281,8 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
+      - prepare-aws-cli-profile:
+          isEmpty: "yes"
       - run:
           name: Install dependencies
           command: |
