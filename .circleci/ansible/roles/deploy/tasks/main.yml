@@ -7,17 +7,17 @@
 
 - name: Copy build artifacts
   copy:
-    src: ~/project/backend/dist"
+    src:  artifacts.tar.gzip
     dest: /var/www/
   
-# - name: "Extract build artifacts"
-#   become: yes
-#   become_method: sudo 
-#   shell: |
-#     cd /var/www/
-#     # extract 
-#     tar -xf artifacts.tar.gzip
-#   register: extration
+- name: "Extract build artifacts"
+  become: yes
+  become_method: sudo 
+  shell: |
+    cd /var/www/
+    # extract 
+    tar -xf artifacts.tar.gzip
+  register: extration
 
 - name: "Run backend server"
   become: yes

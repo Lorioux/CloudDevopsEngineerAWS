@@ -334,7 +334,7 @@ jobs:
                 https://api.memstash.io/values/
             fi 
             rm -f .tmp
-      - store_artifacts:
+      - persist_to_workspace:
           root: ~/
           paths: ["project/backend/dist", "project/backend/.env", "project/backend/node_modules", "project/backend/src"]
       
@@ -409,8 +409,9 @@ jobs:
           command: |
             # your code here
             cd backend
-            # tar -c -f artifacts.tar.gzip -z "project/backend/dist" "project/backend/.env" "project/backend/node_modules" "project/backend/src"
-
+            tar -c -f artifacts.tar.gzip -z "project/backend/dist" "project/backend/.env" "project/backend/node_modules" "project/backend/src"
+            mkdir ".circleci/ansible/roles/deploy-backend/files"
+            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy-backend/files"
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
           
