@@ -124,10 +124,17 @@ jobs:
             cd backend
             ls -a 
             npm i
-
-            while read line; do 
-              echo $line >> .env
-            done < .env.sample
+            cat > .env \<< EOF
+            TYPEORM_CONNECTION=postgres
+            TYPEORM_MIGRATIONS_DIR=./dist/migrations
+            TYPEORM_ENTITIES=./dist/modules/domain/**/*.entity.ts
+            TYPEORM_MIGRATIONS=./dist/migrations/*.ts
+            TYPEORM_HOST=${TYPEORM_HOST}
+            TYPEORM_PORT=${TYPEORM_PORT}
+            TYPEORM_USERNAME=${TYPEORM_USERNAME}
+            TYPEORM_PASSWORD=${TYPEORM_PASSWORD}
+            TYPEORM_DATABASE=${TYPEORM_DATABASE}
+            EOF
             cat .env
             npm run build
       - save_cache:
@@ -208,10 +215,16 @@ jobs:
           command: |
             cd ./backend
             npm audit fix --audit-level=critical --force
+
+            # bundle build artifacts
+            tar -c -f artifats.tar.gzip -z dist node_modules src .env
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-
+      - store_artifacts:
+          path: ~/artifacts.tar.gzip
+          destination: backend
+      
   deploy-infrastructure:
     docker:
       # Docker image here that supports AWS CLI
@@ -286,20 +299,6 @@ jobs:
             # Your code here
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/configure-server.yml"
-            mkdir ".circleci/ansible/roles/configure-server/files/"
-
-            config=".circleci/ansible/roles/configure-server/files/.dbserver.cfg"
-
-            cat  >> $config \<<- EOF
-              ENVIRONMENT="production"
-              TYPEORM_CONNECTION="${TYPEORM_CONNECTION}"
-              TYPEORM_ENTITIES="${TYPEORM_ENTITIES}"
-              TYPEORM_HOST="${TYPEORM_HOST}"
-              TYPEORM_PORT="${TYPEORM_PORT}"
-              TYPEORM_USERNAME="${TYPEORM_USERNAME}"
-              TYPEORM_PASSWORD="${TYPEORM_PASSWORD}"
-              TYPEORM_DATABASE="${TYPEORM_DATABASE}"
-            EOF
 
             ansible-playbook -i $inventory $playbook
       # Cache the config file to   
@@ -416,9 +415,10 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            # your code here
+            # your code here            
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
+          
             ansible-playbook -i $inventory $playbook
       # Here's where you will add some code to rollback on failure   
       - destroy-environment:
@@ -479,7 +479,7 @@ jobs:
       # - revert-migrations:
       #     id: ${CIRCLE_WORKFLOW_ID}
 
-# # cloudfront-update:
+# cloudfront-update:
   #   docker:
   #     # Docker image here that supports AWS CLI
   #     - image: amazon/aws-cli
@@ -512,7 +512,13 @@ jobs:
   #         command: |
   #           # your code here
   #           export OldWorkflowID="the id here"
-  #           export STACKS=[] #put the list of stacks here
+  #           export OldWorkflowID=$(aws cloudformation \
+  #               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+  #               --no-paginate --output text)
+            
+  #           # export STACKS=[] #put the list of stacks here
+  #           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+  #               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
   #     - run:
   #         name: Remove old stacks and files
   #         command: |

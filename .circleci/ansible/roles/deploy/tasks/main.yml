@@ -4,24 +4,35 @@
   become_method: sudo 
   shell:
     mkdir /var/www/
-    mkdir /var/www/src/
 
-- name: Copy files
+- name: Copy build artifacts
   become: yes
   become_method: sudo
   copy:
-    src: "/home/circleci/project/backend/dist/"
-    dest: /var/www/src/
+    src: "~/backend/"
+    dest: /var/www/
   
-- name: "Start backend server"
+- name: "Extract build artifacts"
   become: yes
   become_method: sudo 
   shell: |
-    cd /var/www/src/
-    pm2 start main.js
+    cd /var/www/
+    # extract 
+    tar -xf artifacts.tar.gzip
+  register: extration
+
+- name: "Run backend server"
+  become: yes 
+  become_method: sudo 
+  shell: |
+    cd /var/www/
+    pm2 start dist/main.js
+    pm2 log 0 --nostream
   register: launch
 
-
+- name: Print extraction results
+  debug:
+    msg: "{{ extraction.stdout_lines }}"
 
 - name: Print launch results
   debug:
