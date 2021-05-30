@@ -126,9 +126,9 @@ jobs:
             npm i
             cat > .env \<< EOF
             TYPEORM_CONNECTION=postgres
-            TYPEORM_MIGRATIONS_DIR=./d/migrations
-            TYPEORM_ENTITIES=./dist/modules/domain/**/*.entity.ts
-            TYPEORM_MIGRATIONS=./dist/migrations/*.ts
+            TYPEORM_MIGRATIONS_DIR=./dist/migrations
+            TYPEORM_ENTITIES=./dist/modules/domain/**/*.entity.js
+            TYPEORM_MIGRATIONS=./dist/migrations/*.js
             TYPEORM_HOST=${TYPEORM_HOST}
             TYPEORM_PORT=${TYPEORM_PORT}
             TYPEORM_USERNAME=${TYPEORM_USERNAME}
