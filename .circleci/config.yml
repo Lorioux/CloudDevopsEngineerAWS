@@ -138,7 +138,7 @@ jobs:
             cat .env
             npm run build
       - save_cache:
-          paths: ["backend/node_modules", "project/backend/.env", "project/backend/dist" ]
+          paths: ["backend/node_modules", "backend/.env", "backend/dist" ]
           key: backend-build
   test-frontend:
     docker:
