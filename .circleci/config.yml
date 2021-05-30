@@ -410,15 +410,14 @@ jobs:
           name: Deploy backend
           command: |
             # your code here
-            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy/files"
+            mkdir ".circleci/ansible/roles/deploy/files"
             
             cd backend
             ls -a
 
             tar -c -zf artifacts.tar.gzip ./dist
-            mkdir ".circleci/ansible/roles/deploy/files"
+            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy/files"
             
-
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
           
