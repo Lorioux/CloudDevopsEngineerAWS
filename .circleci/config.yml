@@ -316,12 +316,16 @@ jobs:
       - prepare-aws-cli-profile:
           installaws: "yes"
       - attach_workspace:
-          at: ~/            
+          at: ~/
+      - restore_cache:
+          keys:
+            - "backend-build"           
       - run:
           name: Run migrations
           command: |
             # Your code here
             cd backend
+            ls -a
             npm run migrations >> .tmp   
       - run:
           name: Send migration results to memstash
