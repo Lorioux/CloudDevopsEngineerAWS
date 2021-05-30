@@ -319,7 +319,6 @@ jobs:
           command: |
             # Your code here
             cd backend
-            ls -a 
             npm run migrations >> .tmp   
       - run:
           name: Send migration results to memstash
@@ -334,7 +333,6 @@ jobs:
                 https://api.memstash.io/values/
             fi
             cat .tmp
-            rm -f .tmp
       - persist_to_workspace:
           root: ~/
           paths: ["project/backend/dist"]
