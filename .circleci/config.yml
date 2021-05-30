@@ -126,7 +126,7 @@ jobs:
             npm i
             cat > .env \<< EOF
             TYPEORM_CONNECTION=postgres
-            TYPEORM_MIGRATIONS_DIR=./dist/migrations
+            TYPEORM_MIGRATIONS_DIR=./d/migrations
             TYPEORM_ENTITIES=./dist/modules/domain/**/*.entity.ts
             TYPEORM_MIGRATIONS=./dist/migrations/*.ts
             TYPEORM_HOST=${TYPEORM_HOST}
@@ -325,7 +325,7 @@ jobs:
           command: |
             # Your code here
             cd backend
-            ls -a
+            cat .env
             npm run migrations >> .tmp   
       - run:
           name: Send migration results to memstash
