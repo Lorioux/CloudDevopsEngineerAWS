@@ -46,15 +46,12 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-bend-<<parameters.id>> 
             isempty="<<parameters.isEmpty>>"
             if [[ "$isempty" == "no" ]]; then  
-
-              aws cloudformation delete-stack --stack-name udapeople-fend-<<parameters.id>> --retain-resources "WebsiteBucket"
-
-              aws s3 rb s3://udapeople-<<parameters.id>> --force 
+              aws s3 rm s3://udapeople-<<parameters.id>> --recursive
+              # aws s3 rb s3://udapeople-<<parameters.id>> --force 
               
-            else
-              aws cloudformation delete-stack --stack-name udapeople-fend-<<parameters.id>>
             fi
-
+            aws cloudformation delete-stack --stack-name udapeople-fend-<<parameters.id>>
+          
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
@@ -337,7 +334,7 @@ jobs:
                 https://api.memstash.io/values/
             fi 
             rm -f .tmp
-      - persist_to_workspace:
+      - store_artifacts:
           root: ~/
           paths: ["project/backend/dist", "project/backend/.env", "project/backend/node_modules", "project/backend/src"]
       
@@ -410,7 +407,8 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            # your code here 
+            # your code here
+            cd backend
             # tar -c -f artifacts.tar.gzip -z "project/backend/dist" "project/backend/.env" "project/backend/node_modules" "project/backend/src"
 
             inventory=".circleci/ansible/inventory.txt"

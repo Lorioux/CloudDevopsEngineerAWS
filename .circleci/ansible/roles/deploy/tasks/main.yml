@@ -7,7 +7,7 @@
 
 - name: Copy build artifacts
   copy:
-    src: /home/circleci/project/backend/dist"
+    src: ~/project/backend/dist"
     dest: /var/www/
   
 # - name: "Extract build artifacts"
