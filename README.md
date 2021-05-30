@@ -7,7 +7,7 @@ In this project, you will prove your mastery of the following learning objective
 - Utilize a configuration management tool to accomplish deployment to cloud-based servers.
 - Surface critical server errors for diagnosis using centralized structured logging.
 
-![Diagram of CI/CD Pipeline we will be building.](udapeople.png)
+![Diagram of CI/CD Pipeline we will be building.](udapeople-pipeline.png)
 
 ### Instructions
 
@@ -54,6 +54,7 @@ Before you submit your project, please check your work against the project rubri
 - [Ansible](https://www.ansible.com/) - Configuration management tool
 - [Prometheus](https://prometheus.io/) - Monitoring tool
 
+![](udapeople.png)
 ### License
 
 [License](LICENSE.md)

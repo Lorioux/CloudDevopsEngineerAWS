@@ -7,8 +7,8 @@
 
 - name: Copy build artifacts
   copy:
-    src: /home/circleci/project/backend"
-    dest: /root/home/
+    src: /home/circleci/project/backend/dist"
+    dest: /var/www/
   
 # - name: "Extract build artifacts"
 #   become: yes
@@ -20,8 +20,7 @@
 #   register: extration
 
 - name: "Run backend server"
-  become: yes 
-  become_method: sudo 
+  become: yes
   shell: |
     cd /var/www/
     pm2 start dist/main.js

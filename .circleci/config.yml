@@ -141,7 +141,7 @@ jobs:
           key: backend-build
       - persist_to_workspace:
           root: ~/
-          paths: ["project/backend/.env", "project/backend/dist"]
+          paths: ["project/backend/.env"]
   
   test-frontend:
     docker:
@@ -314,8 +314,6 @@ jobs:
       - checkout
       - prepare-aws-cli-profile:
           installaws: "yes"
-      - attach_workspace:
-          at: ~/
       - restore_cache:
           keys:
             - "backend-build"           
@@ -324,7 +322,7 @@ jobs:
           command: |
             # Your code here
             cd backend
-            cat .env
+            ls -a 
             npm run migrations >> .tmp   
       - run:
           name: Send migration results to memstash
@@ -338,7 +336,11 @@ jobs:
                 --data "migration_${CIRCLE_WORKFLOW_ID} : 1 " \ 
                 https://api.memstash.io/values/
             fi 
-            rm -f .tmp 
+            rm -f .tmp
+      - persist_to_workspace:
+          root: ~/
+          paths: ["project/backend/dist", "project/backend/.env", "project/backend/node_modules", "project/backend/src"]
+      
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
@@ -393,24 +395,24 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["4d:0b:29:64:e7:f8:19:f7:0a:76:80:38:8a:fe:be:b6"]     
-      - restore_cache:
-          key: "backend-build"
+          fingerprints: ["4d:0b:29:64:e7:f8:19:f7:0a:76:80:38:8a:fe:be:b6"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/    
       - run:
           name: Install dependencies
           command: |
             # your code here
             curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
             sudo pip install ansible
-      - prepare-aws-cli-profile:
+      - prepare-aws-cli-profile: # will be required to destroy-environment, ON_FAIL
           installaws: "yes" 
-      # attach workspace
-      - attach_workspace:
-          at: ~/
       - run:
           name: Deploy backend
           command: |
-            # your code here            
+            # your code here 
+            # tar -c -f artifacts.tar.gzip -z "project/backend/dist" "project/backend/.env" "project/backend/node_modules" "project/backend/src"
+
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
           
@@ -474,53 +476,55 @@ jobs:
       # - revert-migrations:
       #     id: ${CIRCLE_WORKFLOW_ID}
 
-# cloudfront-update:
-  #   docker:
-  #     # Docker image here that supports AWS CLI
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     # Checkout code from git
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # your code here
+cloudfront-update:
+  docker:
+    # Docker image here that supports AWS CLI
+    - image: amazon/aws-cli
+  steps:
+    # Checkout code from git
+    - checkout
+    - run:
+        name: Install dependencies
+        command: |
+          # your code here
 
-  #     - run:
-  #         name: Update cloudfront distribution
-  #         command: |
-  #           # your code here
-  #     # Here's where you will add some code to rollback on failure
-  #     - destroy-environment:
-  #         id: ${CIRCLE_WORKFLOW_ID}
-  #     - revert-migrations:
-  #         id: ${CIRCLE_WORKFLOW_ID}
+    - run:
+        name: Update cloudfront distribution
+        command: |
+          # your code here
+    # Here's where you will add some code to rollback on failure
+    - destroy-environment:
+        id: ${CIRCLE_WORKFLOW_ID}
+    - revert-migrations:
+        id: ${CIRCLE_WORKFLOW_ID}
 
 
-  # cleanup:
-  #   docker:
-  #     # Docker image here
-  #   steps:
-  #     # Checkout code from git
-  #     - run:
-  #         name: Get old stack workflow id
-  #         command: |
-  #           # your code here
-  #           export OldWorkflowID="the id here"
-  #           export OldWorkflowID=$(aws cloudformation \
-  #               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-  #               --no-paginate --output text)
+  cleanup:
+    docker:
+      # Docker image here
+      - image: circleci/python:latest
+    steps:
+      # Checkout code from git
+      - checkout
+      - prepare-aws-cli-profile:
+          installaws: "yes"
+      - run:
+          name: Get old stack workflow id
+          command: |
+            # your code here
+            export OldWorkflowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
             
-  #           # export STACKS=[] #put the list of stacks here
-  #           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-  #               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-  #     - run:
-  #         name: Remove old stacks and files
-  #         command: |
-  #           if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-  #           then
-  #             # your code here
-  #           fi
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+                --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              # your code here
+            fi
             
 workflows:
   default:
