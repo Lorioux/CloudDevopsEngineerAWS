@@ -410,7 +410,7 @@ jobs:
             # your code here
             mkdir ".circleci/ansible/roles/deploy/files/"
 
-            tar -c -zf artifacts.tar.gzip ./backend/dist ./backend/.env ./backend/node_modules
+            tar -c -zf artifacts.tar.gzip ./backend/dist ./backend/.env ./backend/pachage.json 
             cp -f ./artifacts.tar.gzip ".circleci/ansible/roles/deploy/files/"
             
             inventory=".circleci/ansible/inventory.txt"
@@ -446,8 +446,11 @@ jobs:
           name: Backend smoke test.
           command: |
             # your code here
+            
             URL="http://${BACKEND_URL}/api/status"
-            if curl -s $URL | grep "ok"; then 
+            echo $URL
+            
+            if ( curl -s $URL | grep "ok" ); then 
               exit 0
             else 
               exit 1
@@ -458,7 +461,7 @@ jobs:
           command: |
             # your code here
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-1.amazonaws.com"
-            if curl -s $URL | grep "Welcome"; then 
+            if ( curl -s $URL | grep "Welcome" ); then 
               exit 0
             else 
               exit 1

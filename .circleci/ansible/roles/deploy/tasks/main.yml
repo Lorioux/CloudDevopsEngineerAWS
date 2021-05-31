@@ -12,20 +12,25 @@
     
     # remove required *.gzip file
     rm -f artifacts.tar.gzip
-  register: extraction
 
 - name: "Run backend server"
   become: yes
   shell: |
     cd backend
     pm2 start dist/main.js
-    pm2 log 0 --lines 50 --json --nostream
   register: launch
 
-- name: Print extraction results
-  debug:
-    msg: "{{ extraction.stderr_lines }}"
+- name: "Check logs"
+  shell: |
+    pm2 log 0 --lines 50 --json --nostream
+  register: logs
 
 - name: Print launch results
   debug:
     msg: "{{ launch.stdout_lines }}"
+    
+- name: Print extraction results
+  debug:
+    msg: "{{ logs.stdout_lines }}"
+
+
