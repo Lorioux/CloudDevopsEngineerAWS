@@ -14,13 +14,12 @@
     dest: /home/ubuntu
 
 - name: "Install modules and fix"
-  become: yes 
-  shell:
+  shell: |
     npm install
     npm audit fix --audit-level=critical --force
   register: installation
 
 - name: "Print installations results"
   debug:
-    msg: "{{ installation.stderr_lines }}"
+    msg: "{{ installation.stdout_lines }}"
     
