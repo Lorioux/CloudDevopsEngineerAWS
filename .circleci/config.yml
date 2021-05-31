@@ -290,6 +290,13 @@ jobs:
             playbook=".circleci/ansible/configure-server.yml"
 
             ansible-playbook -i $inventory $playbook
+      - run:
+          name: Configure node-exporter
+          command: |
+            inventory=".circleci/ansible/inventory.txt"
+            playbook=".circleci/ansible/configure-prometheus-node-exporter.yml"
+
+            ansible-playbook -i $inventory $playbook
       # Cache the config file to   
       - save_cache:
           paths: [".circleci/ansible/roles/configure-server/files"]
@@ -408,7 +415,7 @@ jobs:
             mkdir ".circleci/ansible/roles/deploy/files/"
             
             cd backend
-            tar -c -zf artifacts.tar.gzip ./dist ./.env
+            tar -c -zf artifacts.tar.gzip ./dist
             cp -f ./artifacts.tar.gzip "../.circleci/ansible/roles/deploy/files/"
             
             inventory="../.circleci/ansible/inventory.txt"
@@ -450,14 +457,13 @@ jobs:
             else 
               exit 1
             fi
-
       - run:
           name: Frontend smoke test.
           command: |
             # your code here
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-1.amazonaws.com"
             if ( curl -s ${URL} | grep "Welcome" ); then 
-              exit 1
+              exit 0
             else 
               exit 1
             fi
@@ -530,7 +536,6 @@ jobs:
               aws cloudformation delete-stack --stack-name "udapeople-bend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-fend-${OldWorkflowID}"
             fi
-
 
 
 workflows:
