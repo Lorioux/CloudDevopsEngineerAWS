@@ -32,7 +32,7 @@ commands:
       # Add parameter here
       id: 
         type: string
-      # Sign that bucket need to be empty first. Otherwise, will lead to stack DELETE_FAILURE
+      # Mask as bucket need to be empty first, or NOT. Otherwise, will lead to stack DELETE_FAILURE
       isEmpty: 
         type: enum
         default: "yes"
@@ -47,8 +47,6 @@ commands:
             isempty="<<parameters.isEmpty>>"
             if [[ "$isempty" == "no" ]]; then  
               aws s3 rm s3://udapeople-<<parameters.id>> --recursive
-              # aws s3 rb s3://udapeople-<<parameters.id>> --force 
-              
             fi
             aws cloudformation delete-stack --stack-name udapeople-fend-<<parameters.id>>
           
@@ -511,7 +509,6 @@ cloudfront-update:
     - revert-migrations:
         id: ${CIRCLE_WORKFLOW_ID}
 
-
   cleanup:
     docker:
       # Docker image here
@@ -541,7 +538,9 @@ cloudfront-update:
               aws cloudformation delete-stack --stack-name "udapeople-bend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-fend-${OldWorkflowID}"
             fi
-            
+
+
+
 workflows:
   default:
     jobs:
@@ -570,7 +569,10 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-frontend, deploy-backend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - hold:
+          type: approval
+          requires: [cloudfront-updat]
+      - cleanup:
+          requires: [cloudfront-update, hold]

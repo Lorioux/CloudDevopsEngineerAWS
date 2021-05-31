@@ -7,10 +7,9 @@
     npm install -g pm2@latest
 
 - name: "Copy package file"
-  become: yes
   copy: 
     src: package.json
-    dist: /home/ubuntu
+    dest: /home/ubuntu
 
 - name: "Install modules and fix"
   become: yes 

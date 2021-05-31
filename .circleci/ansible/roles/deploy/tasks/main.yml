@@ -20,7 +20,7 @@
     pm2 start dist/main.js
   register: launch
 
-- name: "Check logs"
+- name: "Check pm2 logs"
   shell: |
     pm2 log 0 --lines 50 --json --nostream
   register: logs
