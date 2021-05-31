@@ -21,15 +21,16 @@
   register: launch
 
 - name: "Check pm2 logs"
+  become: yes
   shell: |
-    pm2 log 0 --lines 50 --json --nostream
+    pm2 log 0 --lines 100 --json --nostream
   register: logs
 
 - name: Print launch results
   debug:
     msg: "{{ launch.stdout_lines }}"
 
-- name: Print extraction results
+- name: Print logs
   debug:
     msg: "{{ logs.stdout_lines }}"
 

@@ -5,6 +5,8 @@
   shell: |
     apt install -y nodejs npm
     npm install -g pm2@latest
+    # Startup PM2 Daemon
+    pm2 startup
 
 - name: "Copy package file"
   copy: 
