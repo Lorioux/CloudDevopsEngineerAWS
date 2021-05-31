@@ -9,7 +9,7 @@
   shell: |
     # extract 
     tar -xf artifacts.tar.gzip
-    
+
     # remove required *.gzip file
     rm -f artifacts.tar.gzip
 
@@ -23,7 +23,7 @@
 - name: "Check pm2 logs"
   become: yes
   shell: |
-    pm2 log 0 --lines 100 --json --nostream
+    pm2 log 0 --lines 100 --nostream
   register: logs
 
 - name: Print launch results

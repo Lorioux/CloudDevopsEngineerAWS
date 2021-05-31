@@ -225,7 +225,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=CapStone03 \
               --stack-name "udapeople-bend-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}" 
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
             
       - run:
           name: Ensure front-end infrastructure exist
@@ -234,7 +234,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=CapStone03 \
               --stack-name "udapeople-fend-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}" 
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
             
       - run:
           name: Append back-end ip into ansible inventory
@@ -476,10 +476,6 @@ jobs:
       # Checkout code from git
       - checkout
       - run:
-          name: Install dependencies
-          command: |
-            # your code here
-      - run:
           name: Update cloudfront distribution
           command: |
             # your code here
@@ -493,14 +489,14 @@ jobs:
             echo Old Workflow Id: "${OldWorkflowID}"
 
             aws cloudformation deploy \ 
-              --template-file .circleci/files/cloudfront.yml \ 
-              --stack-name udapeople-cloudfront \ 
+              --template-file "./.circleci/files/cloudfront.yml" \ 
+              --stack-name "udapeople-cloudfront-${CIRCLE_WORKFLOW_ID}" \ 
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=CapStone03 &
-
+              --tags project=CapStone03
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
+          isEmpty: "no"
       - revert-migrations:
           id: ${CIRCLE_WORKFLOW_ID}
 
