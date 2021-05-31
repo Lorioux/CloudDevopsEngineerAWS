@@ -23,7 +23,7 @@
 - name: "Check pm2 logs"
   become: yes
   shell: |
-    pm2 log 0 --lines 100 --nostream
+    cat /root/.pm2/logs/main-out.log
   register: logs
 
 - name: Print launch results
