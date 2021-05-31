@@ -573,6 +573,6 @@ workflows:
           requires: [smoke-test]
       - hold:
           type: approval
-          requires: [cloudfront-updat]
+          requires: [cloudfront-update]
       - cleanup:
           requires: [cloudfront-update, hold]
