@@ -435,19 +435,17 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Get backend url
-          command: |
-            # your code here
-            inventory=".circleci/ansible/inventory.txt"
-            BACKEND_IP=$(grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" $inventory)
-            export BACKEND_URL="http://${BACKEND_IP}:3030"
-      - run:
           name: Backend smoke test.
           command: |
-            # your code here
-            URL="http://${BACKEND_URL}/api/status"
-            echo $URL
-            if ( curl -s $URL | grep "ok" ); then 
+            # Get backend IP
+            inventory=".circleci/ansible/inventory.txt"
+            BACKEND_IP=$( grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" $inventory )
+            BACKEND_URL="http://${BACKEND_IP}/api/status"
+
+            echo BACKEND_URL
+
+            # Test backend availability
+            if ( curl -s BACKEND_URL | grep "ok" ); then 
               exit 0
             else 
               exit 1
