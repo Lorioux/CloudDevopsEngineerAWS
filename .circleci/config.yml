@@ -575,4 +575,4 @@ workflows:
           type: approval
           requires: [cloudfront-update]
       - cleanup:
-          requires: [cloudfront-update, hold]
+          requires: [hold]
