@@ -445,10 +445,10 @@ jobs:
             echo $BACKEND_URL
 
             # Test backend availability
-            if ( curl -s $BACKEND_URL | grep "ok" ); then 
-              exit 0
-            else 
+            if ( curl -s ${BACKEND_URL} | grep "ok" ); then 
               exit 1
+            else 
+              exit 0
             fi
 
       - run:
@@ -456,17 +456,17 @@ jobs:
           command: |
             # your code here
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-1.amazonaws.com"
-            if ( curl -s $URL | grep "Welcome" ); then 
+            if ( curl -s ${URL} | grep "Welcome" ); then 
               exit 0
             else 
               exit 1
             fi
       # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          id: ${CIRCLE_WORKFLOW_ID}
-          isEmpty: "no"
-      - revert-migrations:
-          id: ${CIRCLE_WORKFLOW_ID}
+      # - destroy-environment:
+      #     id: ${CIRCLE_WORKFLOW_ID}
+      #     isEmpty: "no"
+      # - revert-migrations:
+      #     id: ${CIRCLE_WORKFLOW_ID}
 
   cloudfront-update:
     docker:
@@ -564,10 +564,10 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-frontend, deploy-backend]
-      - cloudfront-update:
-          requires: [smoke-test]
       - hold:
           type: approval
-          requires: [cloudfront-update]
+          requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test, hold]
       - cleanup:
           requires: [hold, cloudfront-update]
