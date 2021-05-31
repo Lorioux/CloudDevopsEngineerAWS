@@ -1,17 +1,24 @@
 ---
-- name: Check environment
-  become_method: sudo
-  shell: |
-    env
-  register: check_envars
-
-- name: Install Node and pm2
+- name: "Install Node and pm2"
   become: yes
   become_method: sudo
   shell: |
     apt install -y nodejs npm
     npm install -g pm2@latest
 
-- name: Print server env check
+- name: "Copy packages files"
+  copy: 
+    src: package.json
+    dist: /home/ubuntu
+
+- name: "Install modules and fix"
+  become: yes 
+  shell:
+    npm install
+    npm audit fix --audit-level=critical --force
+  register: installation
+
+- name: "Print installations results"
   debug:
-    msg: "{{ check_envars.stdout_lines }}"
+    msg: "{{ installation.stderr_lines }}"
+    

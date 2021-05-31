@@ -288,6 +288,9 @@ jobs:
           name: Configure server
           command: |
             # Your code here
+            mkdir ".circleci/ansible/roles/configure-server/files/"
+            cp backend/package.json ".circleci/ansible/roles/configure-server/files/"
+            
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/configure-server.yml"
 
@@ -399,9 +402,7 @@ jobs:
           name: Install dependencies
           command: |
             # your code here
-            
             sudo pip install ansible
-
       - prepare-aws-cli-profile: # will be required to destroy-environment ON_FAIL
           installaws: "yes" 
       - run:
@@ -409,12 +410,13 @@ jobs:
           command: |
             # your code here
             mkdir ".circleci/ansible/roles/deploy/files/"
-
-            tar -c -zf artifacts.tar.gzip ./backend/dist ./backend/.env ./backend/pachage.json 
+            
+            cd backend
+            tar -c -zf artifacts.tar.gzip ./dist ./.env
             cp -f ./artifacts.tar.gzip ".circleci/ansible/roles/deploy/files/"
             
-            inventory=".circleci/ansible/inventory.txt"
-            playbook=".circleci/ansible/deploy-backend.yml"
+            inventory="../.circleci/ansible/inventory.txt"
+            playbook="../.circleci/ansible/deploy-backend.yml"
 
             ansible-playbook -i $inventory $playbook
       # Here's where you will add some code to rollback on failure   
@@ -488,6 +490,21 @@ cloudfront-update:
         name: Update cloudfront distribution
         command: |
           # your code here
+          export OldWorkflowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+            
+          export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+
+          echo Old Workflow Id: "${OldWorkflowID}"
+
+          aws cloudformation deploy \ 
+            --template-file .circleci/files/cloudfront.yml \ 
+            --stack-name udapeople-cloudfront \ 
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=CapStone03 &
+
     # Here's where you will add some code to rollback on failure
     - destroy-environment:
         id: ${CIRCLE_WORKFLOW_ID}
@@ -520,6 +537,9 @@ cloudfront-update:
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               # your code here
+              aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-bend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-fend-${OldWorkflowID}"
             fi
             
 workflows:

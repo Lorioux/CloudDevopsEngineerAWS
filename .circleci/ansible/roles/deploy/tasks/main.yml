@@ -28,7 +28,7 @@
 - name: Print launch results
   debug:
     msg: "{{ launch.stdout_lines }}"
-    
+
 - name: Print extraction results
   debug:
     msg: "{{ logs.stdout_lines }}"
