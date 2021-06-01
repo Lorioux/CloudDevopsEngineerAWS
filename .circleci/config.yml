@@ -410,17 +410,14 @@ jobs:
           name: Deploy backend
           command: |
             # your code here
-            mkdir ".circleci/ansible/roles/deploy/files"
-            
-            cd backend
-            ls -a
+            mkdir ".circleci/ansible/roles/deploy/files/"
 
-            tar -c -zf artifacts.tar.gzip ./dist
-            mv -f artifacts.tar.gzip ".circleci/ansible/roles/deploy/files"
+            tar -c -zf artifacts.tar.gzip ./backend/dist
+            cp -f ./artifacts.tar.gzip ".circleci/ansible/roles/deploy/files/"
             
             inventory=".circleci/ansible/inventory.txt"
             playbook=".circleci/ansible/deploy-backend.yml"
-          
+
             ansible-playbook -i $inventory $playbook
       # Here's where you will add some code to rollback on failure   
       - destroy-environment:
