@@ -313,7 +313,7 @@ jobs:
             # Your code here
             cd backend
             for output in $(npm run migrations); do
-              echo output >> .tmp 
+              echo $output >> .tmp 
             done 
       - run:
           name: Send migration results to memstash
