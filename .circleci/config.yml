@@ -132,9 +132,9 @@ jobs:
             EOF
             npm run build
 
-            export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
+            export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
 
-            echo "${MEMSTASH_TOKEN}"
+            echo "${OldWorkflowID}"
       - save_cache:
           paths: ["backend/node_modules" ]
           key: backend-build
@@ -483,7 +483,7 @@ jobs:
                   --no-paginate --output text)
             
             # Save old workflow id to use later
-            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --data "${OldWorkflowID}" --request PUT "https://api.memstash.io/values/OLD_WORKFLOW_ID"
+            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --data "${OldWorkflowID}" --request PUT "https://api.memstash.io/values/OLDWORKFLOWID"
               
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
@@ -516,7 +516,7 @@ jobs:
           command: |
             # retrieve for memstash.io
             export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \ 
-                --request GET "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
+                --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
 
             echo "Old Workflow Id: ${OldWorkflowID}"
 
