@@ -134,7 +134,7 @@ jobs:
 
             export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
 
-            echo "${OldWorkflowID}"
+            echo "${MEMSTASH_TOKEN}"
       - save_cache:
           paths: ["backend/node_modules" ]
           key: backend-build
