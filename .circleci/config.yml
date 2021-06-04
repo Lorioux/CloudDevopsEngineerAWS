@@ -132,8 +132,7 @@ jobs:
             EOF
             npm run build
 
-            export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \ 
-                --request GET "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
+            export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
 
             echo "${OldWorkflowID}"
       - save_cache:
