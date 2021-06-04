@@ -477,6 +477,9 @@ jobs:
             export OldWorkflowID=$(aws cloudformation \
                   list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                   --no-paginate --output text)
+            
+            # Save old workflow id to use later
+            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --data "${OldWorkflowID}" --request PUT "https://api.memstash.io/values/OLD_WORKFLOW_ID"
               
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
@@ -488,10 +491,6 @@ jobs:
             fi
 
             aws cloudformation deploy --template-file .circleci/files/cloudfront.yml --stack-name "udapeople-cloudfront-${CIRCLE_WORKFLOW_ID}" --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID}" --tags project=CapStone03
-
-            # Save old workflow id to use later
-            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --data "${OldWorkflowID}" --request PUT "https://api.memstash.io/values/OLD_WORKFLOW_ID" )
-
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
