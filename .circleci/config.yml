@@ -505,17 +505,14 @@ jobs:
       # Checkout code from git
       - checkout
       - restore_cache:
-          keys: ["OldWorkflowIDs"]
-      - run:
-          name: Get old workflow id
-          command: |
-            # retrieve for memstash.io
-            export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
-
-            echo "Old Workflow Id: ${OldWorkflowID}"
+          keys: ["OldWorkflowIDs"]            
       - run:
           name: Remove old stacks and files
           command: |
+            # retrieve old workflow id from memstash.io
+            export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
+
+            echo "Old Workflow Id: ${OldWorkflowID}"
 
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
@@ -523,9 +520,8 @@ jobs:
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               # check if any bucket name with substring oldworkflow id, then remove
-              if [[ "$(aws s3 ls)" == *"${OldWorkflowID}"* ]]
+              if [[ "$(aws s3 ls)" =~ "${OldWorkflowID}" ]]
               then
-                echo "Deleting bucket: udapeople-${OldWorkflowID}"
                 aws s3 rm s3://"udapeople-${OldWorkflowID}" --recursive
               fi
               aws cloudformation delete-stack --stack-name "udapeople-bend-${OldWorkflowID}"
