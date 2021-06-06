@@ -136,7 +136,7 @@ jobs:
           key: backend-build
       - persist_to_workspace:
           root: ~/
-          paths: ["project/backend/.env", "project/backend/dist"]
+          paths: ["project/backend/.env"]
   
   test-frontend:
     docker:
@@ -326,7 +326,10 @@ jobs:
             else 
               curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request PUT --data "0"  "https://api.memstash.io/values/migrations_${CIRCLE_WORKFLOW_ID}"
             fi
-      
+      - persist_to_workspace:
+          root: ~/
+          paths: ["project/backend/dist"]
+
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
@@ -453,11 +456,11 @@ jobs:
               exit 1
             fi
       # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          id: ${CIRCLE_WORKFLOW_ID}
-          isEmpty: "no"
-      - revert-migrations:
-          id: ${CIRCLE_WORKFLOW_ID}
+      # - destroy-environment:
+      #     id: ${CIRCLE_WORKFLOW_ID}
+      #     isEmpty: "no"
+      # - revert-migrations:
+      #     id: ${CIRCLE_WORKFLOW_ID}
 
   cloudfront-update:
     docker:
@@ -510,7 +513,6 @@ jobs:
             export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
 
             echo "Old Workflow Id: ${OldWorkflowID}"
-
       - run:
           name: Remove old stacks and files
           command: |
