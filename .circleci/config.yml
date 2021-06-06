@@ -62,7 +62,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/migrations_<<parameters.id>> )
+            SUCCESS=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/migrations_<<parameters.id>> )
             
             if(( $SUCCESS == 1 )); 
             then
@@ -131,10 +131,6 @@ jobs:
             TYPEORM_DATABASE=${TYPEORM_DATABASE}
             EOF
             npm run build
-
-            export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
-
-            echo "${OldWorkflowID}"
       - save_cache:
           paths: ["backend/node_modules" ]
           key: backend-build
@@ -246,7 +242,7 @@ jobs:
             # Your code here
             cmd=$(aws ec2 describe-instances \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID}" \
-              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --query "Reservations[*].Instances[*].PublicDnsName" \
               --output text)
             
             for dnsname in $cmd; do 
@@ -302,7 +298,7 @@ jobs:
   run-migrations:
     docker:
       # Docker image here that supports NodeJS
-      - image: circleci/node:latest
+      - image: circleci/node:12.22.1
     steps:
       # Checkout code from git
       - checkout
@@ -317,23 +313,19 @@ jobs:
             # Your code here
             cd backend
             for output in $(npm run migrations); do
-              echo $output >> .tmp 
+              echo $output >> migrations.log 
             done 
       - run:
           name: Send migration results to memstash
           command: |
             # Your code here
             cd backend
-            cat .tmp
-            if ( grep -F "successfully" .tmp ); then
+            cat  migrations.log 
+            if ( grep -F "successfully"  migrations.log ); then
               curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request PUT --data "1"  "https://api.memstash.io/values/migrations_${CIRCLE_WORKFLOW_ID}"
             else 
               curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request PUT --data "0"  "https://api.memstash.io/values/migrations_${CIRCLE_WORKFLOW_ID}"
             fi
-            
-      - persist_to_workspace:
-          root: ~/
-          paths: ["project/backend/dist"]
       
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
@@ -364,8 +356,8 @@ jobs:
           command: |
             # your code here
             inventory=".circleci/ansible/inventory.txt"
-            BACKEND_IP=$(grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" $inventory)           
-            export API_URL="http://${BACKEND_IP}:3030"
+            BACKEND_DNSNAME=$(grep -E ".com$" $inventory)           
+            export API_URL="http://${BACKEND_DNSNAME}:3030"
             cd frontend
             echo "API_URL=${API_URL}" > .env 
       - run:
@@ -439,8 +431,8 @@ jobs:
           command: |
             # Get backend IP
             inventory=".circleci/ansible/inventory.txt"
-            BACKEND_IP=$( grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" $inventory )
-            BACKEND_URL="http://${BACKEND_IP}:3030/api/status"
+            BACKEND_DNSNAME=$( grep -E ".com$" $inventory )
+            BACKEND_URL="http://${BACKEND_DNSNAME}:3030/api/status"
 
             echo $BACKEND_URL
 
@@ -515,8 +507,7 @@ jobs:
           name: Get old workflow id
           command: |
             # retrieve for memstash.io
-            export OldWorkflowID=$(curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \ 
-                --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
+            export OldWorkflowID=$(curl -H "token:${MEMSTASH_TOKEN}" --request GET "https://api.memstash.io/values/OLDWORKFLOWID" )
 
             echo "Old Workflow Id: ${OldWorkflowID}"
 
