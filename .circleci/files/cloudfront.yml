@@ -41,6 +41,6 @@ Outputs:
 
   WebpageCDN:
     Description: URL for distribution of web hosted S3
-    Value: !Join ["", ["https://", !Get WebpageCDN.DomainName ]]
+    Value: !Join ["", ["https://", !GetAtt WebpageCDN.DomainName ]]
     Export:
       Name: WebPageDistribution
