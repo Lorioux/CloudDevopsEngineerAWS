@@ -43,7 +43,7 @@ commands:
         enum: ["no", "yes"]
     steps:
       - prepare-aws-cli-profile:
-          installAWS: <<parameters.requireAWCLI>>
+          installAWS: <<parameters.requireAWSCLI>>
       - run:
           name: Destroy environments
           when: on_fail
