@@ -43,6 +43,6 @@ Resources:
 Outputs:
   EC2Instance:
     Description: EC2 backend URL 
-    Value: !Join ["", ["http://", !GetAtt EC2Instance.DnsName, "3030" ] ]
+    Value: !Join ["", ["http://", !GetAtt EC2Instance.PublicDnsName, "3030" ] ]
     Export:
       Name: WebBackEndURL
