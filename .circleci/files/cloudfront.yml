@@ -35,6 +35,12 @@ Resources:
 Outputs:
   WorkflowID:
     Value: !Sub ${WorkflowID}
-    Description: URL for website hosted on S3
+    Description: Stack related workflow Id
     Export:
       Name: WorkflowID
+
+  WebpageCDN:
+    Description: URL for distribution of web hosted S3
+    Value: !Join ["", ["https://", !Get WebpageCDN.DomainName ]]
+    Export:
+      Name: WebPageDistribution
