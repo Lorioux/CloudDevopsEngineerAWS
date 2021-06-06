@@ -8,14 +8,14 @@ commands:
     description: > 
       Prepare a aws cli profile variable for environment destruction with image that don't support AWS CLI
     parameters:
-      installaws: 
+      installAWS: 
         type: string
-        default: "no"
+        default: "yes"
     steps:
       - run:
           name: Install and configure AWS Profile
           command: |
-            param=<<parameters.installaws>>          
+            param=<<parameters.installAWS>>          
             if [[ "$param" == "yes" ]]; then 
               sudo apt install -y python-pip
               pip install -U awscli
@@ -37,7 +37,13 @@ commands:
         type: enum
         default: "yes"
         enum: ["no", "yes"]
+      requireAWSCLI:
+        type: enum
+        default: "no"
+        enum: ["no", "yes"]
     steps:
+      - prepare-aws-cli-profile:
+          installAWS: <<parameters.requireAWCLI>>
       - run:
           name: Destroy environments
           when: on_fail
@@ -272,8 +278,6 @@ jobs:
       # attach workspace
       - attach_workspace:
           at: ~/
-      - prepare-aws-cli-profile:
-          installaws: "yes"
       - run:
           name: Install dependencies
           command: |
@@ -293,7 +297,8 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
-          isEmpty: "yes"     
+          isEmpty: "yes"
+          requireAWSCLI: "yes"    
 
   run-migrations:
     docker:
@@ -302,8 +307,6 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - prepare-aws-cli-profile:
-          installaws: "yes"
       - restore_cache:
           keys:
             - "backend-build"           
@@ -334,6 +337,7 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "yes"
+          requireAWSCLI: "yes"
 
   deploy-frontend:
     docker:
@@ -350,8 +354,6 @@ jobs:
               # your code here
               cd frontend
               npm audit fix --audit-level=critical
-      - prepare-aws-cli-profile:
-          installaws: "yes"
       - attach_workspace:
           at: ~/
       - run:
@@ -375,6 +377,7 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "no"
+          requireAWSCLI: "yes"
 
   deploy-backend:
     docker:
@@ -394,8 +397,6 @@ jobs:
           command: |
             # your code here
             sudo pip install ansible
-      - prepare-aws-cli-profile: # will be required to destroy-environment ON_FAIL
-          installaws: "yes" 
       - run:
           name: Deploy backend
           command: |
@@ -414,6 +415,7 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "no"
+          requireAWSCLI: "yes"
 
   smoke-test:
     docker:
