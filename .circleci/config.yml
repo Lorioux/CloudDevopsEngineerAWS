@@ -517,10 +517,10 @@ jobs:
           name: Remove old stacks and files
           command: |
 
-            STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             
-            if [[ "${STACKS[@]}" != *"${OldWorkflowID}"* ]]
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               # check if any bucket name with substring oldworkflow id, then remove
               if [[ "$(aws s3 ls)" == *"${OldWorkflowID}"* ]]
