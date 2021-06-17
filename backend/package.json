@@ -2,7 +2,7 @@
   "name": "glee2",
   "version": "1.0.0",
   "description": "This is just a test.",
-  "author": "",
+  "author": "Magido Mascate",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
