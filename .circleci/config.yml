@@ -385,7 +385,7 @@ jobs:
           command: |
             # your code here
             yum install -y python3-pip tar gzip
-            pip install ansible
+            pip3 install ansible
       # attach workspace
       - attach_workspace:
           at: ~/  
