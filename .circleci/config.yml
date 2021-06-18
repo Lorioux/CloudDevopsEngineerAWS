@@ -333,7 +333,7 @@ jobs:
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI 
-      - image: amazon/aws-cli
+      - image: circleci/node
     steps:
       # Checkout code from git
       - checkout
@@ -344,7 +344,8 @@ jobs:
             command: |
               # your code here
               curl -sL https://rpm.nodesource.com/setup_13.x | bash -
-              yum install -y nodejs tar gzip
+              yum install -y nodejs tar gzip 
+              npm install -g webpack-cli
       - attach_workspace:
           at: ~/          
       - run:
