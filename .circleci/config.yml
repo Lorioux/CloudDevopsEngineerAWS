@@ -4,28 +4,7 @@ orbs:
   slack: circleci/slack@4.1
 
 commands:
-  prepare-aws-cli-profile: # Help install and configure AWS CLI 
-    description: > 
-      Prepare a aws cli profile variable for environment destruction with image that don't support AWS CLI
-    parameters:
-      installAWS: 
-        type: string
-        default: "yes"
-    steps:
-      - run:
-          name: Install and configure AWS Profile
-          command: |
-            param=<<parameters.installAWS>>          
-            if [[ "$param" == "yes" ]]; then 
-              sudo apt install -y python-pip
-              pip install -U awscli
-              aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-              aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-              aws configure set default.region ${AWS_DEFAULT_REGION}
-
-              aws configure list
-            fi
-
+  
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -42,13 +21,27 @@ commands:
         default: "no"
         enum: ["no", "yes"]
     steps:
-      - prepare-aws-cli-profile:
-          installAWS: <<parameters.requireAWSCLI>>
+      - run:
+          name: Install and configure awscli (IF NEEDED)
+          command: |
+            param=<<parameters.requireAWSCLI>>         
+            if [[ "$param" == "yes" ]]; then 
+              sudo apt install -y python-pip
+              pip install -U awscli
+              aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+              aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+              aws configure set default.region ${AWS_DEFAULT_REGION}
+
+              aws configure list
+            fi
+
       - run:
           name: Destroy environments
           when: on_fail
           command: |
             # Your code here
+            
+
             aws cloudformation delete-stack --stack-name udapeople-bend-<<parameters.id>> 
             isempty="<<parameters.isEmpty>>"
             if [[ "$isempty" == "no" ]]; then  
@@ -332,7 +325,6 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths: ["project/backend/dist"]
-
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
@@ -347,15 +339,16 @@ jobs:
       # Checkout code from git
       - checkout
       - restore_cache:
-          key: frontend-build
-      - attach_workspace:
-          at: ~/      
+          key: frontend-build  
       - run:
             name: Install dependencies
             command: |
               # your code here
               curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-              nvm install 13.8.0      
+              nvm install 13.8.0
+              yum install -y tar gzip
+      - attach_workspace:
+          at: ~/          
       - run:
           name: Get backend url
           command: |
@@ -377,26 +370,26 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "no"
-          requireAWSCLI: "no"
 
   deploy-backend:
     docker:
       # Docker image here that supports Ansible
-      - image: circleci/python:latest
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["4d:0b:29:64:e7:f8:19:f7:0a:76:80:38:8a:fe:be:b6"]
-      # attach workspace
-      - attach_workspace:
-          at: ~/    
+          fingerprints: ["4d:0b:29:64:e7:f8:19:f7:0a:76:80:38:8a:fe:be:b6"]  
       - run:
           name: Install dependencies
           command: |
             # your code here
+            sudo yum install -y python-pip tar gzip
             sudo pip install ansible
+      # attach workspace
+      - attach_workspace:
+          at: ~/  
       - run:
           name: Deploy backend
           command: |
@@ -415,7 +408,6 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "no"
-          requireAWSCLI: "yes"
 
   smoke-test:
     docker:
