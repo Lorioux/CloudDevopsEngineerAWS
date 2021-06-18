@@ -40,8 +40,6 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            
-
             aws cloudformation delete-stack --stack-name udapeople-bend-<<parameters.id>> 
             isempty="<<parameters.isEmpty>>"
             if [[ "$isempty" == "no" ]]; then  
