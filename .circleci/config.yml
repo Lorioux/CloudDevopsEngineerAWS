@@ -342,20 +342,20 @@ jobs:
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI 
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
       - restore_cache:
-          key: frontend-build       
+          key: frontend-build
+      - attach_workspace:
+          at: ~/      
       - run:
             name: Install dependencies
             command: |
               # your code here
-              cd frontend
-              npm audit fix --audit-level=critical
-      - attach_workspace:
-          at: ~/
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+              nvm install 13.8.0      
       - run:
           name: Get backend url
           command: |
@@ -377,7 +377,7 @@ jobs:
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID}
           isEmpty: "no"
-          requireAWSCLI: "yes"
+          requireAWSCLI: "no"
 
   deploy-backend:
     docker:
