@@ -343,9 +343,8 @@ jobs:
             name: Install dependencies
             command: |
               # your code here
-              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-              nvm install 13.8.0
-              yum install -y tar gzip
+              curl -sL https://deb.nodesource.com/setup_14.x  | bash
+              yum install -y nodejs tar gzip
       - attach_workspace:
           at: ~/          
       - run:
