@@ -11,8 +11,9 @@ commands:
       # Add parameter here
       id: 
         type: string
-      # Mask as bucket need to be empty first, or NOT. Otherwise, will lead to stack DELETE_FAILURE
-      isEmpty: 
+      isEmpty:
+        description: > 
+          Mark bucket as empty first, or NOT. Otherwise, will lead to stack DELETE_FAILURE
         type: enum
         default: "yes"
         enum: ["no", "yes"]
