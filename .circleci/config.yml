@@ -35,7 +35,6 @@ commands:
 
               aws configure list
             fi
-
       - run:
           name: Destroy environments
           when: on_fail
@@ -232,8 +231,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=CapStone03 \
               --stack-name "udapeople-fend-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}" 
-            
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"    
       - run:
           name: Append back-end ip into ansible inventory
           command: |
@@ -333,21 +331,24 @@ jobs:
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI 
-      - image: amazon/aws-cli
+      - image: circleci/node:latest
     steps:
       # Checkout code from git
       - checkout
       - restore_cache:
-          key: frontend-build  
+          key: frontend-build   
+      - attach_workspace:
+          at: ~/ 
       - run:
             name: Install dependencies
             command: |
               # your code here
-              curl -sL https://rpm.nodesource.com/setup_14.x | bash -
-              yum install -y nodejs tar gzip 
-              npm install -g webpack-cli
-      - attach_workspace:
-          at: ~/          
+              sudo apt install -y python3
+              sudo apt install -y python-pip
+              pip install -U awscli
+              aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+              aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+              aws configure set default.region ${AWS_DEFAULT_REGION}      
       - run:
           name: Get backend url
           command: |
