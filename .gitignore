@@ -1,6 +1,7 @@
 *~
 *.sw[mnpcod]
 *.log
+*.png
 *.tmp
 *.tmp.*
 log.txt
@@ -67,4 +68,6 @@ UserInterfaceState.xcuserstate
 node_modules
 
 .env
-dist
+dist/
+
+*.md
